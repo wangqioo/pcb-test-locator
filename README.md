@@ -33,6 +33,14 @@ output\net_summary.csv
 
 ## Open Web View
 
+Double-click:
+
+```text
+start.bat
+```
+
+Or run:
+
 ```powershell
 python -m http.server 8765 --directory C:\Users\100448405\pcb_test_locator
 ```
@@ -44,6 +52,20 @@ http://127.0.0.1:8765/web/index.html
 ```
 
 The web view supports net search, Top/Bottom switching, wheel zoom, drag pan, candidate filtering, board profile display, and component outlines.
+
+## Image Overlay
+
+The web view can overlay recommended points on a board image using a simple two-point, axis-aligned calibration:
+
+```text
+1. Load a Top or Bottom board image.
+2. Enter PCB coordinates for P1 and P2 in millimeters.
+3. Click Pick P1 and select the matching image point.
+4. Click Pick P2 and select the matching image point.
+5. Click Apply.
+```
+
+This first version assumes the image is not rotated or perspective-warped. Use board corners, tooling holes, connector pins, or known test points as calibration points.
 
 ## Scoring
 

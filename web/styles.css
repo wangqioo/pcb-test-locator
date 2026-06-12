@@ -46,6 +46,7 @@ input {
   background: #eef2f4;
   min-width: 0;
   min-height: 0;
+  overflow: auto;
 }
 
 .brand h1 {
@@ -91,6 +92,11 @@ input {
 
 .file-picker input {
   display: none;
+}
+
+.file-picker.compact {
+  min-height: 30px;
+  margin-bottom: 8px;
 }
 
 .search-row {
@@ -156,10 +162,63 @@ input {
 }
 
 .results-panel {
-  flex: 1;
-  min-height: 0;
+  flex: 1 1 160px;
+  min-height: 140px;
   display: flex;
   flex-direction: column;
+}
+
+.image-panel {
+  flex: 0 0 auto;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.cal-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cal-grid input {
+  min-width: 0;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 6px;
+}
+
+.cal-grid button,
+.image-actions button {
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.cal-grid span {
+  align-self: center;
+  overflow-wrap: anywhere;
+}
+
+.image-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+#imageStatus {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .net-list,
@@ -318,6 +377,18 @@ input {
   fill: #162328;
   stroke: #7a9099;
   stroke-width: 0.6;
+}
+
+.board-image {
+  opacity: 0.86;
+  pointer-events: none;
+}
+
+.image-cal-point {
+  fill: #ef4444;
+  stroke: #fff;
+  stroke-width: 1.5;
+  pointer-events: none;
 }
 
 .profile-outline {

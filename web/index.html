@@ -52,6 +52,29 @@
           <h2>Nets</h2>
           <div id="netList" class="net-list"></div>
         </section>
+
+        <section class="panel image-panel">
+          <h2>Image Overlay</h2>
+          <label class="file-picker compact">
+            <span>Load board image</span>
+            <input id="imageInput" type="file" accept="image/*" />
+          </label>
+          <div class="cal-grid">
+            <label>P1 PCB X<input id="pcb1x" type="number" step="0.001" /></label>
+            <label>P1 PCB Y<input id="pcb1y" type="number" step="0.001" /></label>
+            <button id="pickP1Btn" type="button">Pick P1</button>
+            <span id="imgP1Text">not set</span>
+            <label>P2 PCB X<input id="pcb2x" type="number" step="0.001" /></label>
+            <label>P2 PCB Y<input id="pcb2y" type="number" step="0.001" /></label>
+            <button id="pickP2Btn" type="button">Pick P2</button>
+            <span id="imgP2Text">not set</span>
+          </div>
+          <div class="image-actions">
+            <button id="applyImageBtn" type="button">Apply</button>
+            <button id="clearImageBtn" type="button">Clear</button>
+          </div>
+          <p id="imageStatus">No image loaded</p>
+        </section>
       </aside>
 
       <section class="workspace">

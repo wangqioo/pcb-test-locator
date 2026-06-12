@@ -10,6 +10,15 @@ const state = {
   hideVias: false,
   hideIc: false,
   showOutlines: true,
+  image: null,
+  pickTarget: null,
+  imageCal: {
+    pcb1: null,
+    img1: null,
+    pcb2: null,
+    img2: null,
+    transform: null,
+  },
 };
 
 const els = {
@@ -29,6 +38,18 @@ const els = {
   hideViaInput: document.getElementById("hideViaInput"),
   hideIcInput: document.getElementById("hideIcInput"),
   outlineInput: document.getElementById("outlineInput"),
+  imageInput: document.getElementById("imageInput"),
+  pcb1x: document.getElementById("pcb1x"),
+  pcb1y: document.getElementById("pcb1y"),
+  pcb2x: document.getElementById("pcb2x"),
+  pcb2y: document.getElementById("pcb2y"),
+  pickP1Btn: document.getElementById("pickP1Btn"),
+  pickP2Btn: document.getElementById("pickP2Btn"),
+  imgP1Text: document.getElementById("imgP1Text"),
+  imgP2Text: document.getElementById("imgP2Text"),
+  applyImageBtn: document.getElementById("applyImageBtn"),
+  clearImageBtn: document.getElementById("clearImageBtn"),
+  imageStatus: document.getElementById("imageStatus"),
 };
 
 function fmt(value, digits = 2) {
@@ -51,6 +72,10 @@ function loadBoard(board) {
 
 function fitView() {
   if (!state.board) return;
+  if (state.image) {
+    state.viewBox = { x: 0, y: 0, w: state.image.width, h: state.image.height };
+    return;
+  }
   const b = state.board.bounds;
   const width = b.max_x_mm - b.min_x_mm;
   const height = b.max_y_mm - b.min_y_mm;
@@ -214,6 +239,27 @@ function displayY(y) {
   return b.min_y_mm + b.max_y_mm - y;
 }
 
+function boardToDisplayPoint(point) {
+  if (state.image && state.imageCal.transform) {
+    const t = state.imageCal.transform;
+    return {
+      x: t.offsetX + Number(point.x_mm) * t.scaleX,
+      y: t.offsetY + Number(point.y_mm) * t.scaleY,
+    };
+  }
+  return { x: Number(point.x_mm), y: displayY(Number(point.y_mm)) };
+}
+
+function boardPathPoints(points) {
+  return points.map(([x, y]) => {
+    if (state.image && state.imageCal.transform) {
+      const p = boardToDisplayPoint({ x_mm: x, y_mm: y });
+      return [p.x, p.y];
+    }
+    return [x, displayY(y)];
+  });
+}
+
 function renderBoard() {
   const svg = els.boardSvg;
   svg.replaceChildren();
@@ -222,8 +268,22 @@ function renderBoard() {
   svg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
   svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
+  if (state.image) {
+    svg.appendChild(
+      svgEl("image", {
+        class: "board-image",
+        href: state.image.url,
+        x: 0,
+        y: 0,
+        width: state.image.width,
+        height: state.image.height,
+      })
+    );
+    renderImageCalibration(svg);
+  }
+
   const b = state.board.bounds;
-  if (state.board.profile && state.board.profile.length) {
+  if (!state.image && state.board.profile && state.board.profile.length) {
     for (const outline of state.board.profile) {
       svg.appendChild(
         svgEl("path", {
@@ -232,7 +292,7 @@ function renderBoard() {
         })
       );
     }
-  } else {
+  } else if (!state.image) {
     svg.appendChild(
       svgEl("rect", {
         class: "board-outline",
@@ -245,7 +305,7 @@ function renderBoard() {
     );
   }
 
-  if (state.showOutlines && state.board.component_outlines) {
+  if (!state.image && state.showOutlines && state.board.component_outlines) {
     const outlineLayer = svgEl("g");
     for (const c of state.board.component_outlines) {
       if (state.side !== "ALL" && c.side !== state.side) continue;
@@ -275,14 +335,15 @@ function renderBoard() {
     svg.appendChild(componentLayer);
   }
 
-  const points = getVisiblePoints();
+  const points = state.image && !state.imageCal.transform ? [] : getVisiblePoints();
   for (const p of points) {
     const selected = state.selectedPoint === p;
+    const pos = boardToDisplayPoint(p);
     const dot = svgEl("circle", {
       class: `point-dot ${selected ? "is-selected" : ""}`,
-      cx: p.x_mm,
-      cy: displayY(p.y_mm),
-      r: selected ? 1.25 : 0.85,
+      cx: pos.x,
+      cy: pos.y,
+      r: state.image ? (selected ? 7 : 5) : (selected ? 1.25 : 0.85),
     });
     const title = svgEl("title");
     title.textContent = `${p.net} ${p.candidate} ${p.side} X=${fmt(p.x_mm, 3)}mm Y=${fmt(p.y_mm, 3)}mm`;
@@ -296,11 +357,25 @@ function renderBoard() {
       svg.appendChild(
         svgEl("text", {
           class: "point-label",
-          x: Number(p.x_mm) + 1.4,
-          y: displayY(Number(p.y_mm)) - 1.4,
+          x: pos.x + (state.image ? 10 : 1.4),
+          y: pos.y - (state.image ? 10 : 1.4),
         })
       ).textContent = p.candidate;
     }
+  }
+}
+
+function renderImageCalibration(svg) {
+  for (const p of [state.imageCal.img1, state.imageCal.img2]) {
+    if (!p) continue;
+    svg.appendChild(
+      svgEl("circle", {
+        class: "image-cal-point",
+        cx: p.x,
+        cy: p.y,
+        r: 8,
+      })
+    );
   }
 }
 
@@ -341,6 +416,15 @@ function zoomAt(event) {
 
 function startPan(event) {
   if (!state.viewBox || event.button !== 0) return;
+  if (state.image && state.pickTarget) {
+    event.preventDefault();
+    const point = clientToSvgPoint(event);
+    state.imageCal[state.pickTarget] = point;
+    state.pickTarget = null;
+    updateImageStatus("Image point picked");
+    renderAll();
+    return;
+  }
   event.preventDefault();
   els.boardSvg.setPointerCapture(event.pointerId);
   els.boardSvg.classList.add("is-panning");
@@ -438,6 +522,85 @@ els.outlineInput.addEventListener("change", applyFilters);
 els.fitBtn.addEventListener("click", () => {
   fitView();
   renderBoard();
+});
+
+function updateImageStatus(message) {
+  els.imageStatus.textContent = message;
+  els.imgP1Text.textContent = state.imageCal.img1
+    ? `${fmt(state.imageCal.img1.x, 1)}, ${fmt(state.imageCal.img1.y, 1)}`
+    : "not set";
+  els.imgP2Text.textContent = state.imageCal.img2
+    ? `${fmt(state.imageCal.img2.x, 1)}, ${fmt(state.imageCal.img2.y, 1)}`
+    : "not set";
+}
+
+function readPcbCalibrationInputs() {
+  const pcb1 = { x: Number(els.pcb1x.value), y: Number(els.pcb1y.value) };
+  const pcb2 = { x: Number(els.pcb2x.value), y: Number(els.pcb2y.value) };
+  if ([pcb1.x, pcb1.y, pcb2.x, pcb2.y].some((v) => !Number.isFinite(v))) {
+    return null;
+  }
+  if (pcb1.x === pcb2.x || pcb1.y === pcb2.y) return null;
+  return { pcb1, pcb2 };
+}
+
+function applyImageCalibration() {
+  const inputs = readPcbCalibrationInputs();
+  if (!state.image || !inputs || !state.imageCal.img1 || !state.imageCal.img2) {
+    updateImageStatus("Need image, PCB P1/P2, and picked image P1/P2");
+    return;
+  }
+  const { pcb1, pcb2 } = inputs;
+  const { img1, img2 } = state.imageCal;
+  const scaleX = (img2.x - img1.x) / (pcb2.x - pcb1.x);
+  const scaleY = (img2.y - img1.y) / (pcb2.y - pcb1.y);
+  state.imageCal.pcb1 = pcb1;
+  state.imageCal.pcb2 = pcb2;
+  state.imageCal.transform = {
+    scaleX,
+    scaleY,
+    offsetX: img1.x - pcb1.x * scaleX,
+    offsetY: img1.y - pcb1.y * scaleY,
+  };
+  updateImageStatus("Image calibration applied");
+  renderAll();
+}
+
+els.imageInput.addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const image = new Image();
+  image.onload = () => {
+    state.image = { url, width: image.naturalWidth, height: image.naturalHeight };
+    state.imageCal = { pcb1: null, img1: null, pcb2: null, img2: null, transform: null };
+    fitView();
+    updateImageStatus(`${file.name} loaded`);
+    renderAll();
+  };
+  image.src = url;
+});
+
+els.pickP1Btn.addEventListener("click", () => {
+  state.pickTarget = "img1";
+  updateImageStatus("Click image point for P1");
+});
+
+els.pickP2Btn.addEventListener("click", () => {
+  state.pickTarget = "img2";
+  updateImageStatus("Click image point for P2");
+});
+
+els.applyImageBtn.addEventListener("click", applyImageCalibration);
+
+els.clearImageBtn.addEventListener("click", () => {
+  state.image = null;
+  state.pickTarget = null;
+  state.imageCal = { pcb1: null, img1: null, pcb2: null, img2: null, transform: null };
+  els.imageInput.value = "";
+  fitView();
+  updateImageStatus("No image loaded");
+  renderAll();
 });
 
 els.boardSvg.addEventListener("wheel", zoomAt, { passive: false });
