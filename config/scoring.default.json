@@ -1,0 +1,122 @@
+{
+  "kind": {
+    "via": {
+      "score": 45,
+      "reason": "via"
+    }
+  },
+  "via_diameter_in": [
+    {
+      "min": 0.012,
+      "score": 20,
+      "reason": "large drill"
+    },
+    {
+      "min": 0.008,
+      "score": 10,
+      "reason": "medium drill"
+    }
+  ],
+  "refdes_family": {
+    "TP": {
+      "score": 100,
+      "reason": "dedicated test point"
+    },
+    "R": {
+      "score": 70,
+      "reason": "passive pad"
+    },
+    "C": {
+      "score": 70,
+      "reason": "passive pad"
+    },
+    "L": {
+      "score": 70,
+      "reason": "passive pad"
+    },
+    "FB": {
+      "score": 70,
+      "reason": "passive pad"
+    },
+    "F": {
+      "score": 70,
+      "reason": "passive pad"
+    },
+    "J": {
+      "score": 55,
+      "reason": "connector pin"
+    },
+    "P": {
+      "score": 55,
+      "reason": "connector pin"
+    },
+    "CON": {
+      "score": 55,
+      "reason": "connector pin"
+    },
+    "CN": {
+      "score": 55,
+      "reason": "connector pin"
+    },
+    "U": {
+      "score": 10,
+      "reason": "IC pin"
+    },
+    "IC": {
+      "score": 10,
+      "reason": "IC pin"
+    }
+  },
+  "default_component": {
+    "score": 35,
+    "reason": "component pad"
+  },
+  "package_contains": [
+    {
+      "text": "1206",
+      "score": 18,
+      "reason": "larger package"
+    },
+    {
+      "text": "1210",
+      "score": 18,
+      "reason": "larger package"
+    },
+    {
+      "text": "0805",
+      "score": 18,
+      "reason": "larger package"
+    },
+    {
+      "text": "0603",
+      "score": 10,
+      "reason": "0603"
+    },
+    {
+      "text": "0402",
+      "score": -8,
+      "reason": "0402 small"
+    },
+    {
+      "text": "0201",
+      "score": -25,
+      "reason": "0201 tiny"
+    }
+  ],
+  "bga_ic_penalty": {
+    "score": -35,
+    "reason": "BGA/hidden IC pad"
+  },
+  "mount_type": {
+    "THMT": {
+      "score": 18,
+      "reason": "through-hole"
+    }
+  },
+  "side": {
+    "TOP": {
+      "score": 4,
+      "reason": "top side"
+    }
+  }
+}

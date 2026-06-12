@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PCB Test Locator</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <aside class="sidebar">
+        <header class="brand">
+          <h1>PCB Test Locator</h1>
+          <p id="stats">Load board.json to begin</p>
+        </header>
+
+        <section class="panel">
+          <label class="file-picker">
+            <span>Load board.json</span>
+            <input id="fileInput" type="file" accept=".json,application/json" />
+          </label>
+          <div class="search-row">
+            <input id="searchInput" type="search" placeholder="Search net, e.g. P3V3" />
+            <button id="clearBtn" type="button" title="Clear search">×</button>
+          </div>
+          <div class="mode-row" aria-label="Board side">
+            <button class="mode is-active" type="button" data-side="TOP">Top</button>
+            <button class="mode" type="button" data-side="BOTTOM">Bottom</button>
+            <button class="mode" type="button" data-side="ALL">All</button>
+          </div>
+          <div class="filter-grid">
+            <label>
+              Top N
+              <input id="topNInput" type="number" min="1" max="20" value="10" />
+            </label>
+            <label>
+              <input id="hideViaInput" type="checkbox" />
+              Hide vias
+            </label>
+            <label>
+              <input id="hideIcInput" type="checkbox" />
+              Hide IC/BGA
+            </label>
+            <label>
+              <input id="outlineInput" type="checkbox" checked />
+              Outlines
+            </label>
+          </div>
+        </section>
+
+        <section class="panel results-panel">
+          <h2>Nets</h2>
+          <div id="netList" class="net-list"></div>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <div class="toolbar">
+          <div>
+            <strong id="activeNet">No net selected</strong>
+            <span id="activeSummary"></span>
+          </div>
+          <div class="toolbar-actions">
+            <button id="fitBtn" type="button">Fit</button>
+            <button id="copyBtn" type="button">Copy point</button>
+          </div>
+        </div>
+        <div class="board-wrap">
+          <svg id="boardSvg" class="board" role="img" aria-label="PCB coordinate map"></svg>
+        </div>
+        <div class="details">
+          <div>
+            <h2>Recommended Points</h2>
+            <div id="pointList" class="point-list"></div>
+          </div>
+          <div>
+            <h2>Selected Point</h2>
+            <dl id="pointDetails" class="detail-list"></dl>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
